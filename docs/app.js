@@ -29,12 +29,17 @@ function mountSeats(){
 function drawCards(id,list,count,hidden=false){
  const key=JSON.stringify([list,count,hidden]);if(rendered[id]===key)return;rendered[id]=key;
  $(id).replaceChildren(...Array.from({length:count},(_,i)=>{
-  const el=document.createElement('div'),c=list[i];
+  const el=document.createElement('span'),c=list[i];
   if(c&&hidden){el.className='card back';el.setAttribute('aria-label','未公开的底牌');}
   else if(!c){el.className='card placeholder';el.setAttribute('aria-label','等待发牌');}
   else{const r=({11:'J',12:'Q',13:'K',14:'A'})[c.rank]||c.rank;el.className='card'+(['h','d'].includes(c.suit)?' red':'');el.setAttribute('aria-label',suitNames[c.suit]+r);el.innerHTML='<span class="corner">'+r+'<small>'+suits[c.suit]+'</small></span><span class="suit" aria-hidden="true">'+suits[c.suit]+'</span>';}
   return el;
  }));
+ if (id === 'board' || id === 'player-cards') {
+  const label = id === 'board' ? '公共牌' : '你的手牌';
+  const faces = Array.from($(id).children).slice(0, list.length).map(face => face.getAttribute('aria-label'));
+  $(id).setAttribute('aria-label', [label, ...faces, '点按放大'].join('，'));
+ }
 }
 function legal(){return game.legalActions(0);}
 function updateRaise(){const s=game.state,value=Number($('raise-range').value);$('raise-value').textContent=n(value);$('raise').textContent=(s.currentBet===0?'下注 ':'加注至 ')+n(value);$('raise-cost').textContent='再投入 '+n(Math.max(0,value-s.players[0].bet));}
@@ -45,7 +50,7 @@ function adviceContext(){
  // the engine, its deck, raw state, or any opponent's card objects.
  return {playerIndex:0,players:s.players.map(({name,style,stack,bet,folded,out,lastAction},index)=>({name,style,stack,bet,folded,out,lastAction,contributed:game._contributions[index]})),
   holeCards:s.players[0].cards.map(copyCard),board:s.board.map(copyCard),pot:s.pot,currentBet:s.currentBet,minRaise:s.minRaise,
-  legal:game.legalActions(0),dealer:s.dealer,phase:s.phase};
+  legal:game.legalActions(0),bigBlind:game.bigBlind,dealer:s.dealer,phase:s.phase};
 }
 function renderAdvice(mine){
  const s=game.state,hero=s.players[0];
@@ -90,7 +95,7 @@ function captureDecision(type, amount) {
  if (type === 'fold' && legalMove.canCheck) question = '这一步可以免费过牌。过牌保留争池机会，弃牌会立即放弃底池。';
  else if (legalMove.callAmount && type !== coach.action) question = '复盘时可以试着缩窄对手范围。假设对方只用强牌下注，你还愿意付这个价格吗？';
  else if (type === 'raise') question = '想一想这次加注的目标：哪些更弱的牌会跟，哪些更强的牌可能弃？';
- return { position, question, phase:phaseNames[s.phase], board:cardText(s.board), own:cardText(s.players[0].cards),
+ return { context:adviceContext(), publicLog:s.log.slice(), action:type, raiseTo:amount, position, question, phase:phaseNames[s.phase], board:cardText(s.board), own:cardText(s.players[0].cards),
   opponents:s.players.filter((p,index) => index && !p.folded && !p.out).length,
   pot:s.pot, cost:legalMove.callAmount, actual, reference:coach.label, reason:coach.reason,
   equity:coach.equity, price:coach.potOdds, contestable:coach.contestablePot,
@@ -113,20 +118,32 @@ function displayReview(index) {
  const hand = reviews[index], list = $('review-decisions');
  list.replaceChildren();
  $('hand-choice').hidden = !hand;
- if (!hand) { $('review-outcome').textContent = '打完第一手后，就能在这里回看自己的决策。'; return; }
+ $('review-result').open = false;
+ $('review-result').hidden = !hand;
+ if (!hand) { noteElement(list, 'p', '打完第一手后，就能在这里重打自己的决策。'); return; }
  const independent = hand.decisions.filter(move => !move.shown).length;
  $('review-outcome').textContent = '净筹码 ' + (hand.delta > 0 ? '+' : '') + n(hand.delta) + ' · 独立决策 ' + independent + ' / ' + hand.decisions.length + ' 次';
  if (!hand.decisions.length) noteElement(list,'p','本手在轮到你之前就已结束。');
- hand.decisions.forEach(move => {
+ hand.decisions.forEach((move, index) => {
   const article = document.createElement('article');
   article.className = 'review-step';
-  noteElement(article,'h3',move.phase + ' · ' + move.actual);
+  noteElement(article,'h3',move.phase + ' · 决策 ' + (index + 1));
   noteElement(article,'p',(move.position ? move.position + '　' : '') + '手牌 ' + move.own + (move.board ? '　公共牌 ' + move.board : '') + '　对手 ' + move.opponents + ' 人','review-state');
   noteElement(article,'p','底池 ' + n(move.pot) + '　需跟注 ' + n(move.cost));
-  if (move.cost) noteElement(article,'p','跟注门槛 = ' + n(move.cost) + ' ÷ ' + n(move.contestable) + ' = ' + percent(move.price) + '（分母为跟注后可争底池）');
-  noteElement(article,'p','估算权益 ' + percent(move.equity) + ' · 教练参考 ' + move.reference + (move.shown ? ' · 已看提示' : ' · 独立选择'),'review-reference');
-  noteElement(article,'p',move.reason);
-  if (move.question) noteElement(article,'p',move.question,'review-prompt');
+  const replayButton = noteElement(article,'button','重打这一步','practice-button');
+  replayButton.type = 'button';
+  replayButton.addEventListener('click', () => {
+   $('replay-dialog').showModal();
+   PokerReplay.start(move);
+  });
+  const feedback = document.createElement('details');
+  noteElement(feedback,'summary','查看原选择与教练意见');
+  noteElement(feedback,'p','你的选择　' + move.actual);
+  article.append(feedback);
+  if (move.cost) noteElement(feedback,'p','跟注门槛 = ' + n(move.cost) + ' ÷ ' + n(move.contestable) + ' = ' + percent(move.price) + '（分母为跟注后可争底池）');
+  noteElement(feedback,'p','估算权益 ' + percent(move.equity) + ' · 教练参考 ' + move.reference + (move.shown ? ' · 已看提示' : ' · 独立选择'),'review-reference');
+  noteElement(feedback,'p',move.reason);
+  if (move.question) noteElement(feedback,'p',move.question,'review-prompt');
   list.append(article);
  });
 }
@@ -142,6 +159,25 @@ function openReview() {
  displayReview(0);
  $('review-dialog').showModal();
 }
+function renderZoomRow(id, cards) {
+ const elements = cards.map(({rank, suit}) => {
+  const value = ({11:'J', 12:'Q', 13:'K', 14:'A'})[rank] || String(rank);
+  const face = document.createElement('span');
+  face.className = 'zoom-card suit-' + suit;
+  face.setAttribute('role','img');
+  face.setAttribute('aria-label', suitNames[suit] + value);
+  noteElement(face, 'b', value);
+  noteElement(face, 'span', suits[suit]);
+  return face;
+ });
+ $(id).replaceChildren(...elements);
+}
+function renderZoom() {
+ const s = game.state;
+ renderZoomRow('zoom-hole', s.players[0].cards);
+ renderZoomRow('zoom-board', s.board);
+ $('zoom-street').textContent = s.board.length ? '' : '等待翻牌';
+}
 function render(){
  const s=game.state,idle=s.phase==='idle',done=s.phase==='complete',hero=s.players[0],mine=!idle&&!done&&s.actor===0,thinking=!idle&&!done&&s.actor>0;
  const result=s.result||{},payouts=result.payouts||[];
@@ -153,6 +189,8 @@ function render(){
  $('player-seat').classList.toggle('is-active',mine);$('player-seat').classList.toggle('folded',hero.folded);
  $('player-bet').textContent=!idle&&!done?(hero.folded?'已弃牌':hero.stack===0?'已全下':hero.bet?'本轮 '+n(hero.bet):''):'';
  drawCards('board',s.board,5);drawCards('player-cards',hero.cards,2);
+ for (const id of ['zoom-cards','board','player-cards']) $(id).disabled = hero.cards.length === 0;
+ if ($('zoom-dialog').open) renderZoom();
  $('hand-strength').textContent=idle?'等待发牌':hero.folded?'已弃牌':(result.handNames?.[0]||game.handName(0));
  for(let i=1;i<s.players.length;i++){
   const p=s.players[i],active=thinking&&s.actor===i;
@@ -221,6 +259,10 @@ $('auto-hints').addEventListener('change', () => {
  try { localStorage.setItem('holdem-practice:auto-hints',$('auto-hints').checked ? 'yes' : 'no'); } catch (_) {}
  renderAdvice(game.state.actor === 0);
 });
+for (const id of ['zoom-cards','board','player-cards']) {
+ $(id).addEventListener('click', () => { renderZoom(); $('zoom-dialog').showModal(); });
+}
+$('open-range').addEventListener('click', () => { $('range-dialog').showModal(); PokerRangeLab.start(); });
 $('open-drills').addEventListener('click', () => { $('drills-dialog').showModal(); PokerDrills.start(); });
 $('open-reviews').addEventListener('click',openReview);
 $('review-hand').addEventListener('click',openReview);

@@ -4,10 +4,13 @@
 
 - **牌桌**　与七位不同风格的电脑对手对局。先独立判断，需要时点“查看提示”。每位电脑只获得自己的两张底牌与公开信息。
 - **逐手复盘**　对照出手时的牌面、跟注门槛、实际选择与教练理由。最近 30 手保存在当前浏览器。
+- **看大牌**　桌面和手机都可以点底牌或公共牌放大。
+- **读牌范围**　同一组河牌可以换对手、调整假设的手牌组合，再比较跟注和弃牌的期望值。
+- **重打这一步**　在逐手复盘里重新选择行动，再对照原选择。新版牌局还可以在单挑河牌替换假设的对手范围，在能够还原本街首次下注时练习半池或满池下注。旧版记录保留过牌、跟注和弃牌的重练。
 - **专项练习**　12 道题覆盖底池赔率、听牌概率、期望值、边池与位置。每道题先作答，再看计算和解释。
 
 教练对仍在牌局中的对手按随机手牌模拟 2,048 次。估算权益含平局分池，跟注门槛等于本次跟注额除以跟注后可争的底池。对手的实际起手范围和后续下注会影响决策。
 
 ## 验证
 
-使用 Node.js 运行 `node tests/test-engine.cjs`、`node tests/test-bot.cjs`、`node tests/test-advisor.cjs` 和 `node tests/test-drills.cjs`。
+使用 Node.js 运行 `node tests/test-engine.cjs`、`node tests/test-bot.cjs`、`node tests/test-advisor.cjs`、`node tests/test-drills.cjs`、`node tests/test-range-lab.cjs` 和 `node tests/test-replay.cjs`。

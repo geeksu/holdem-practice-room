@@ -1,0 +1,98 @@
+/* Training dialogs share the table's type and high-contrast controls. */
+.practice-dialog, #zoom-dialog {
+  width: min(94vw, 42rem);
+  max-height: min(90vh, 55rem);
+  max-height: min(90dvh, 55rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: #f0f3ec;
+}
+.practice-dialog p, .practice-dialog li { line-height: 1.6; }
+.practice-dialog fieldset { min-width: 0; border: 1px solid #506658; border-radius: .6rem; margin: .8rem 0; padding: .7rem .85rem; }
+.practice-dialog legend { font-size: .95rem; color: #e8cd91; padding: 0 .3rem; }
+.practice-dialog label, .practice-dialog input { cursor: pointer; }
+.practice-dialog button:not(.close-button), .practice-dialog select, .practice-dialog input[type=number], .practice-button {
+  max-width: 100%; padding: .52rem .83rem;
+  color: #edf2e9; background: #263d32; border: 1px solid #667c69; border-radius: .45rem;
+  font-size: .95rem; line-height: 1.4;
+}
+.practice-dialog select { text-overflow: ellipsis; }
+.practice-dialog button:not(:disabled):hover, .practice-button:hover { background: #38523f; border-color: #d3b273; }
+.practice-dialog input { accent-color: #d8b775; }
+.practice-dialog h3 { font-size: 1.1rem; margin: .95rem 0 .4rem; }
+.practice-dialog summary, #review-dialog summary { cursor: pointer; }
+.review-step details { margin: .65rem 0 .1rem; }
+.review-step .practice-button { margin-top: .45rem; }
+#review-result { margin-top: .7rem; }
+.training-nav { flex-wrap: wrap; }
+#zoom-cards { font-size: .9rem; color: #f5e4c1; border-color: #796c4c; }
+#zoom-dialog h3 { font-size: 1rem; color: #ccddce; margin: 1rem 0 .5rem; }
+.zoom-row { display: flex; flex-wrap: wrap; gap: clamp(4px, 1.4vw, 9px); }
+.zoom-card {
+  display: flex; flex: 0 1 6.3rem; min-width: 0; aspect-ratio: .78;
+  align-items: center; justify-content: center; flex-direction: column;
+  background: #fffdf4; color: #151a18; border: 1px solid #d5d4be; border-radius: .45rem;
+  font: 700 clamp(2.9rem, 7vw, 3.6rem)/1 system-ui, sans-serif;
+}
+.zoom-card.suit-h, .zoom-card.suit-d { color: #991529; }
+.zoom-card span { font-size: .85em; margin-top: .08em; }
+#zoom-street { margin: .2rem 0; }
+@media(max-width:600px) {
+ .practice-dialog, #zoom-dialog { padding: 1rem; }
+ .zoom-row { display: grid; grid-template-columns: repeat(3, minmax(0, 6.2rem)); }
+ #zoom-hole { grid-template-columns: repeat(2, minmax(0, 6.5rem)); }
+ .table-heading .table-meta { flex-wrap: wrap; justify-content: flex-end; gap: .25rem .5rem; max-width: 9rem; }
+ .table-meta .separator { display: none; }
+ #zoom-cards { padding: .3rem .6rem; }
+ .practice-dialog fieldset { padding-inline: .55rem; }
+}
+.multiplayer-table .zoom-trigger { border: 0; background: transparent; padding: 0; appearance: none; color: inherit; cursor: zoom-in; }
+.multiplayer-table .zoom-trigger:disabled { opacity: 1; cursor: default; }
+.range-layout, #replay-root { min-width: 0; }
+.range-layout select, #replay-root select { vertical-align: middle; }
+.range-opponent-grid, .range-actions, .replay-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.practice-dialog button[aria-pressed=true], .practice-dialog button[aria-checked=true] { color: #ffe5a9; border-color: #e3b961; background: #394435; }
+.range-editor { margin-block: .8rem; }
+.range-editor-summary { padding: .65rem .8rem; color: #f0d493; background: #263d32; border: 1px solid #526c5b; border-radius: .4rem; font-weight: 600; }
+.range-cards, .replay-cards { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.range-history, .replay-history { color: #c1d1c5; }
+.range-history li, .replay-history li { margin: .15rem 0; }
+.range-scenario-label, .range-feedback-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.range-deal { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+.range-card-label { margin: .4rem 0; color: #ccddce; font-weight: 600; }
+.range-card { display: inline-grid; place-items: center; min-width: 2.35rem; min-height: 2.8rem; padding: .2rem; background: #fffdf4; color: #17261f; border-radius: .3rem; font: 700 clamp(1.2rem, 4vw, 1.5rem)/1 Arial, sans-serif; }
+.range-card.red { color: #a32132; }
+.range-combo { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .5rem; padding: .3rem 0; }
+.range-combo-choice { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.range-combo-cards { font: 700 1.05rem/1.3 system-ui, sans-serif; }
+.range-combo-note { color: #c1d1c5; }
+.range-weight-label { display: flex; align-items: center; gap: .35rem; }
+.range-weight-label input { width: 4.6rem; }
+.range-metrics { display: grid; gap: .5rem; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.range-metric { padding: .5rem .7rem; background: #172c21; border-radius: .4rem; }
+.range-metric dd { margin: .23rem 0 0; font: 700 1.3rem/1.2 system-ui, sans-serif; color: #ffe5a9; }
+.replay-snapshot { padding: .65rem .8rem; background: #26392e; border-radius: .5rem; }
+.replay-snapshot p { margin: .35rem 0; }
+.replay-snapshot .replay-phase { margin-top: 0; }
+.replay-cards, .replay-board { font-size: 1.1rem; font-weight: 650; }
+.replay-variants { margin: .7rem 0; display: grid; gap: .35rem; }
+.replay-variants select { justify-self: start; }
+.replay-history { margin-block: .8rem; }
+.replay-actions { align-items: center; }
+.replay-actions h3, .replay-raise-label, .replay-raise-help, .replay-error { flex-basis: 100%; margin: .35rem 0; }
+.replay-error:empty { display: none; }
+.replay-raise-input { width: 7rem; }
+.replay-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .8rem; }
+.replay-facts dd { margin: 0; color: #ffe5a9; }
+.replay-followup, .range-feedback-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
+.range-feedback, .range-comparison, .replay-feedback {
+ border-top: 1px solid #637b68; background: #263a30; padding: .8rem; margin-top: .85rem; border-radius: .5rem;
+}
+.range-results-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.range-results-table th,.range-results-table td { padding: .3rem .2rem; text-align: left; border-bottom: 1px solid #48594f; overflow-wrap:anywhere; }
+@media(max-width:420px) {
+ .training-nav { gap: .3rem; }
+ .table-heading { flex-wrap: wrap; }
+ .table-heading .table-meta { justify-content: flex-start; max-width: none; }
+ .range-opponent-grid, .range-actions, .replay-actions { gap: .35rem; }
+}
